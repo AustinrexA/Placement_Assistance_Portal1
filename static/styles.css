@@ -212,7 +212,7 @@ a:focus-visible {
 
     font-size: 13px;
 
-    transition: *background* 0.15s ease, color 0.15s ease;
+    transition: background 0.15s ease, color 0.15s ease;
 
 }
 
@@ -4160,4 +4160,29 @@ body[data-user-role="user"] .admin-job-link-column { display: none !important; }
 /* Keep date text properly positioned */
 #reportsPage input[type="date"]::-webkit-datetime-edit {
     padding-right: 0;
+}
+/* V4Career Job Family rollout - phase 1 */
+.job-family-filter-field { flex: 1.35 1 220px; min-width: 190px; }
+.standard-role-filter-field { flex: 1.15 1 190px; min-width: 170px; }
+.job-family-filter-field select,
+.standard-role-filter-field select {
+  width: 100%;
+  min-width: 0;
+  height: 38px;
+  padding: 0 10px;
+  color: var(--text, #173653);
+  background: #fff;
+  border: 1px solid #ccd6e1;
+  border-radius: 5px;
+  outline-color: #f47721;
+}
+.job-family-filter-field select:focus,
+.standard-role-filter-field select:focus {
+  border-color: #f47721;
+  box-shadow: 0 0 0 2px rgba(244,119,33,.12);
+}
+.standard-role-filter-field select:disabled {
+  background: #f4f6f8;
+  color: #8a96a3;
+  cursor: not-allowed;
 }

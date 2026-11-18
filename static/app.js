@@ -25,9 +25,13 @@ const state = {
   selectedCareerSourceIds: new Set(),
   roleOptions: [],
   experienceOptions: [],
+  familyCounts: {},
+  roleCounts: {},
   locations: [],
   filters: {
     role: "",
+    job_family: "",
+    standard_role: "",
     location: "",
     experience: "",
     source_id: "",
@@ -57,6 +61,8 @@ const elements = {
   pageTitle: document.getElementById("pageTitle"),
   filterForm: document.getElementById("filterForm"),
   searchInput: document.getElementById("searchInput"),
+  jobFamilyInput: document.getElementById("jobFamilyInput"),
+  standardRoleInput: document.getElementById("standardRoleInput"),
   locationInput: document.getElementById("locationInput"),
   locationDropdownToggle: document.getElementById("locationDropdownToggle"),
   locationOptions: document.getElementById("locationOptions"),
@@ -157,10 +163,9 @@ function buildJobsURL() {
   params.set("source_ids", getSelectedSourceIds().join(","));
 
   const selectedRole = (state.filters.role || "").trim();
-
-  if (selectedRole) {
-    params.set("role", selectedRole);
-  }
+  if (selectedRole) params.set("role", selectedRole);
+  if (state.filters.job_family) params.set("job_family", state.filters.job_family);
+  if (state.filters.standard_role) params.set("standard_role", state.filters.standard_role);
 
   if (state.filters.location) {
     params.set("location", state.filters.location);
@@ -707,6 +712,8 @@ function buildFacetParams(exclude = "") {
   const salaryParts = salaryBand ? salaryBand.split("-") : [];
   const values = {
     role: elements.searchInput.value.trim(),
+    job_family: elements.jobFamilyInput?.value || "",
+    standard_role: elements.standardRoleInput?.value || "",
     location: elements.locationInput.value.trim(),
     experience: elements.experienceInput.value.trim(),
     company: elements.companyInput ? elements.companyInput.value.trim() : "",
@@ -798,6 +805,10 @@ async function loadFilterOptions() {
     const result = await apiGet(
       `/api/filter-options?${buildFacetParams().toString()}`,
     );
+    state.familyCounts = result.family_counts || {};
+    state.roleCounts = result.role_counts || {};
+    updateFamilyCountLabels();
+    populateStandardRoles();
     state.roleOptions = [...new Set((Array.isArray(result.roles) ? result.roles : [])
       .map(canonicalJobRole).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
     state.experienceOptions = Array.isArray(result.experiences)
@@ -1074,6 +1085,8 @@ function closeLocationOptions() {
 }
 async function applyFilters() {
   state.filters.role = elements.searchInput.value.trim();
+  state.filters.job_family = elements.jobFamilyInput?.value || "";
+  state.filters.standard_role = elements.standardRoleInput?.value || "";
   state.filters.location = elements.locationInput.value.trim();
   state.filters.experience = elements.experienceInput.value.trim();
   state.filters.company = elements.companyInput.value.trim();
@@ -1101,10 +1114,17 @@ async function applyFilters() {
 function clearFilters() {
   elements.filterForm.reset();
   if (elements.salaryFilterInput) elements.salaryFilterInput.value = "";
+  if (elements.jobFamilyInput) elements.jobFamilyInput.value = "";
+  if (elements.standardRoleInput) {
+    elements.standardRoleInput.innerHTML = '<option value="">Select a Job Family first</option>';
+    elements.standardRoleInput.disabled = true;
+  }
   closeLocationOptions();
 
   state.filters = {
     role: "",
+    job_family: "",
+    standard_role: "",
     location: "",
     experience: "",
     source_id: "",
@@ -1975,7 +1995,163 @@ elements.locationInput.addEventListener("keydown", (event) => {
   }
 });
 
-/* Update experience options when role changes */
+/* Job-family role lists. Backend uses matching title patterns for the same families. */
+const JOB_FAMILY_ROLES = {
+  software_development: [
+    { value: "", label: "All Software Development Roles" },
+    { value: "Software Developer", label: "Software Developer" },
+    { value: "Software Engineer", label: "Software Engineer" },
+    { value: "Java Developer", label: "Java Developer" },
+    { value: "Python Developer", label: "Python Developer" },
+    { value: "Full Stack Developer", label: "Full Stack Developer" },
+    { value: "Backend Developer", label: "Backend Developer" },
+    { value: "Frontend Developer", label: "Frontend Developer" },
+    { value: ".NET Developer", label: ".NET Developer" },
+    { value: "PHP Developer", label: "PHP Developer" },
+    { value: "Mobile App Developer", label: "Mobile App Developer" },
+    { value: "Web Developer", label: "Web Developer" },
+    { value: "Spring Boot Developer", label: "Spring Boot Developer" },
+  ],
+  data_ai: [
+    { value: "", label: "All Data & AI Roles" },
+    { value: "Data Analyst", label: "Data Analyst" },
+    { value: "Data Scientist", label: "Data Scientist" },
+    { value: "Data Engineer", label: "Data Engineer" },
+    { value: "Business Intelligence Developer", label: "Business Intelligence Developer" },
+    { value: "Power BI Developer", label: "Power BI Developer" },
+    { value: "Machine Learning Engineer", label: "Machine Learning Engineer" },
+    { value: "AI Engineer", label: "AI Engineer" },
+    { value: "NLP / Computer Vision Engineer", label: "NLP / Computer Vision Engineer" },
+    { value: "Data Architect", label: "Data Architect" },
+  ],
+  it_infrastructure: [
+    { value: "", label: "All IT Infrastructure & Cloud Roles" },
+    { value: "DevOps Engineer", label: "DevOps Engineer" },
+    { value: "Cloud Engineer", label: "Cloud Engineer" },
+    { value: "Cloud Architect", label: "Cloud Architect" },
+    { value: "Site Reliability Engineer", label: "Site Reliability Engineer" },
+    { value: "System Administrator", label: "System Administrator" },
+    { value: "Network Engineer", label: "Network Engineer" },
+    { value: "Cybersecurity Analyst", label: "Cybersecurity Analyst" },
+    { value: "Security Engineer", label: "Security Engineer" },
+    { value: "Infrastructure Engineer", label: "Infrastructure Engineer" },
+    { value: "Database Administrator", label: "Database Administrator" },
+    { value: "IT Support Engineer", label: "IT Support Engineer" },
+  ],
+  testing_qa: [
+    { value: "", label: "All Testing & QA Roles" },
+    { value: "QA Engineer", label: "QA Engineer" },
+    { value: "Manual Tester", label: "Manual Tester" },
+    { value: "Automation Tester", label: "Automation Tester" },
+    { value: "Performance Tester", label: "Performance Tester" },
+  ],
+  human_resources: [
+    { value: "", label: "All HR & Talent Management Roles" },
+    { value: "HR Executive", label: "HR Executive" },
+    { value: "HR Manager", label: "HR Manager" },
+    { value: "HR Generalist", label: "HR Generalist" },
+    { value: "Talent Acquisition Specialist", label: "Talent Acquisition Specialist" },
+    { value: "HR Business Partner", label: "HR Business Partner" },
+    { value: "Payroll Executive", label: "Payroll Executive" },
+  ],
+  sales_marketing: [
+    { value: "", label: "All Sales & Marketing Roles" },
+    { value: "Sales Executive", label: "Sales Executive" },
+    { value: "Sales Manager", label: "Sales Manager" },
+    { value: "Business Development Executive", label: "Business Development Executive" },
+    { value: "Digital Marketing Specialist", label: "Digital Marketing Specialist" },
+    { value: "Marketing Analyst", label: "Marketing Analyst" },
+    { value: "Account Manager", label: "Account Manager" },
+  ],
+  finance_accounting: [
+    { value: "", label: "All Finance & Accounting Roles" },
+    { value: "Accountant", label: "Accountant" },
+    { value: "Financial Analyst", label: "Financial Analyst" },
+    { value: "Accounts Payable / Receivable", label: "Accounts Payable / Receivable" },
+    { value: "Auditor", label: "Auditor" },
+    { value: "Tax Analyst", label: "Tax Analyst" },
+    { value: "Banking Associate", label: "Banking Associate" },
+  ],
+  business_admin: [
+    { value: "", label: "All Business Management & Administration Roles" },
+    { value: "Project Manager", label: "Project Manager" },
+    { value: "Program Manager", label: "Program Manager" },
+    { value: "Product Manager", label: "Product Manager" },
+    { value: "Operations Manager", label: "Operations Manager" },
+    { value: "Business Analyst", label: "Business Analyst" },
+    { value: "Management Consultant", label: "Management Consultant" },
+    { value: "Project Coordinator", label: "Project Coordinator" },
+    { value: "Administrative Executive", label: "Administrative Executive" },
+  ],
+  design_content: [
+    { value: "", label: "All Design & Creative Roles" },
+    { value: "UI/UX Designer", label: "UI/UX Designer" },
+    { value: "Graphic Designer", label: "Graphic Designer" },
+    { value: "Product Designer", label: "Product Designer" },
+    { value: "Web Designer", label: "Web Designer" },
+    { value: "Content Writer", label: "Content Writer" },
+    { value: "Video Editor", label: "Video Editor" },
+  ],
+  customer_support: [
+    { value: "", label: "All Customer Support & Operations Roles" },
+    { value: "Customer Support Executive", label: "Customer Support Executive" },
+    { value: "Customer Success Manager", label: "Customer Success Manager" },
+    { value: "Technical Support Engineer", label: "Technical Support Engineer" },
+    { value: "Service Desk Analyst", label: "Service Desk Analyst" },
+    { value: "Operations Executive", label: "Operations Executive" },
+  ],
+};
+
+function updateFamilyCountLabels() {
+  if (!elements.jobFamilyInput) return;
+  [...elements.jobFamilyInput.options].forEach((option) => {
+    if (!option.value) return;
+    const base = option.dataset.baseLabel || option.textContent.replace(/\\s+\\(\\d[\\d,]*\\)$/, "");
+    option.dataset.baseLabel = base;
+    const count = Number(state.familyCounts?.[option.value] || 0);
+    option.textContent = `${base} (${count.toLocaleString()})`;
+  });
+}
+
+function populateStandardRoles() {
+  const family = elements.jobFamilyInput?.value || "";
+  const roles = JOB_FAMILY_ROLES[family] || [];
+  if (!elements.standardRoleInput) return;
+  elements.standardRoleInput.innerHTML = roles.length
+    ? roles.map((role) => {
+        const count = role.value ? Number(state.roleCounts?.[role.value] || 0) : Number(state.familyCounts?.[family] || 0);
+        return `<option value="${escapeHTML(role.value)}">${escapeHTML(role.label)} (${count.toLocaleString()})</option>`;
+      }).join("")
+    : '<option value="">Select a Job Family first</option>';
+  elements.standardRoleInput.disabled = roles.length === 0;
+}
+
+elements.jobFamilyInput?.addEventListener("change", async () => {
+  populateStandardRoles();
+  state.filters.job_family = elements.jobFamilyInput.value;
+  state.filters.standard_role = elements.standardRoleInput?.value || "";
+  state.page = 1;
+  await Promise.all([
+    loadFilterOptions(),
+    loadCompanyFilterOptions(),
+    loadSalaryFilterOptions(),
+  ]);
+  await loadJobs();
+});
+
+elements.standardRoleInput?.addEventListener("change", async () => {
+  state.filters.job_family = elements.jobFamilyInput?.value || "";
+  state.filters.standard_role = elements.standardRoleInput.value;
+  state.page = 1;
+  await Promise.all([
+    loadFilterOptions(),
+    loadCompanyFilterOptions(),
+    loadSalaryFilterOptions(),
+  ]);
+  await loadJobs();
+});
+
+/* Update experience options when legacy role changes */
 elements.searchInput.addEventListener("change", async () => {
   state.filters.role = elements.searchInput.value.trim();
   // Do not discard experience on role changes unless it becomes unavailable.

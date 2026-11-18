@@ -576,12 +576,21 @@ def _expand_location_terms(values):
                 expanded.append(term)
     return expanded
 
+
+
+# Standardised job-family taxonomy shared by job search, facets and exports.
+JOB_FAMILY_PATTERNS = {'software_development': '(software|application developer|application engineer|java developer|java engineer|python developer|python engineer|\\.net|dotnet|c#|php developer|laravel developer|react developer|angular developer|node[.]?js developer|frontend|front-end|backend|back-end|full[ -]?stack|web developer|mobile app|android developer|ios developer|flutter developer|react native developer|spring boot developer|wpf developer|programmer|software engineer|sde\\b)', 'data_ai': '(data analyst|data scientist|data engineer|analytics engineer|business intelligence|\\bbi developer|power bi|tableau|qlik|machine learning|\\bml engineer|artificial intelligence|\\bai engineer|deep learning|nlp engineer|natural language|computer vision|generative ai|llm engineer|prompt engineer|data architect|data modeller|data modeler|statistician|research scientist)', 'it_infrastructure': '(devops|site reliability|\\bsre\\b|cloud engineer|cloud architect|cloud administrator|system administrator|systems administrator|linux administrator|windows administrator|network engineer|network administrator|network architect|cyber ?security|security analyst|security engineer|information security|soc analyst|penetration tester|pentest|ethical hacker|vulnerability|incident response|infrastructure engineer|platform engineer|kubernetes|openshift|database administrator|\\bdba\\b|storage administrator|noc engineer|systems engineer|release engineer|build engineer)', 'testing_qa': '(quality assurance|\\bqa\\b|software tester|test engineer|testing engineer|manual tester|automation tester|selenium|sdet|performance tester|api tester|test lead|test analyst|automation qa)', 'human_resources': '(\\bhr\\b|human resources|talent acquisition|technical recruiter|it recruiter|recruiter|recruitment|hr executive|hr manager|hr generalist|hr business partner|payroll executive|employee relations|learning and development|training and development)', 'sales_marketing': '(sales|business development|bd executive|account manager|inside sales|marketing|digital marketing|seo specialist|sem specialist|social media|lead generation|growth marketing|brand manager|marketing analyst)', 'finance_accounting': '(accountant|accounting|finance|financial analyst|accounts payable|accounts receivable|auditor|tax analyst|taxation|banking associate|banker|financial controller|treasury analyst|credit analyst)', 'business_admin': '(project manager|program manager|product manager|operations manager|business analyst|management consultant|strategy analyst|project coordinator|administrative officer|admin executive|business operations|process analyst|delivery manager|scrum master)', 'design_content': '(ui.?ux|ux designer|ui designer|product designer|graphic designer|web designer|visual designer|content writer|technical writer|copywriter|video editor|creative director|ux researcher|motion designer|illustrator)', 'customer_support': '(customer support|customer service|customer success|technical support|help ?desk|service desk|support analyst|support engineer|process associate|call ?center|call ?centre|operations executive|client servicing)'}
+STANDARD_ROLE_PATTERNS = {'Software Developer': '(software developer|application developer|programmer|software programmer|sde\\b)', 'Software Engineer': '(software engineer|software development engineer)', 'Java Developer': '(java developer|java programmer|java engineer|spring boot|j2ee developer)', 'Python Developer': '(python developer|django developer|flask developer|fastapi developer)', 'Full Stack Developer': '(full[ -]?stack)', 'Backend Developer': '(backend|back-end|back end developer)', 'Frontend Developer': '(frontend|front-end|front end developer|ui developer)', '.NET Developer': '(\\.net|dotnet|asp[.]net|c# developer|wpf developer)', 'PHP Developer': '(php developer|laravel developer)', 'Mobile App Developer': '(mobile app|android developer|ios developer|flutter developer|react native)', 'Web Developer': '(web developer|web application developer)', 'Spring Boot Developer': '(spring boot)', 'Data Analyst': '(data analyst|business data analyst|reporting analyst)', 'Data Scientist': '(data scientist|applied scientist)', 'Data Engineer': '(data engineer|big data engineer|etl developer|analytics engineer)', 'Business Intelligence Developer': '(business intelligence|\\bbi developer|tableau developer|qlik developer)', 'Power BI Developer': '(power bi)', 'Machine Learning Engineer': '(machine learning|\\bml engineer)', 'AI Engineer': '(artificial intelligence|\\bai engineer|generative ai|llm engineer|prompt engineer)', 'NLP / Computer Vision Engineer': '(nlp|natural language|computer vision)', 'Data Architect': '(data architect|data modeler|data modeller)', 'DevOps Engineer': '(devops|release engineer|build engineer)', 'Cloud Engineer': '(cloud engineer|aws engineer|azure engineer|gcp engineer)', 'Cloud Architect': '(cloud architect)', 'Site Reliability Engineer': '(site reliability|\\bsre\\b)', 'System Administrator': '(system administrator|systems administrator|linux administrator|windows administrator)', 'Network Engineer': '(network engineer|network administrator|network architect|noc engineer)', 'Cybersecurity Analyst': '(cyber ?security|security analyst|soc analyst|information security|incident response)', 'Security Engineer': '(security engineer|penetration tester|ethical hacker|vulnerability|pentest)', 'Infrastructure Engineer': '(infrastructure engineer|platform engineer|systems engineer|storage administrator)', 'Database Administrator': '(database administrator|\\bdba\\b)', 'IT Support Engineer': '(it support|technical support engineer|desktop support|help ?desk|service desk)', 'QA Engineer': '(qa engineer|quality assurance engineer|test engineer|testing engineer)', 'Manual Tester': '(manual tester|manual test engineer)', 'Automation Tester': '(automation tester|automation test engineer|selenium|sdet)', 'Performance Tester': '(performance tester|performance test engineer)', 'HR Executive': '(hr executive|human resources executive)', 'HR Manager': '(hr manager|human resources manager)', 'HR Generalist': '(hr generalist|human resources generalist)', 'Talent Acquisition Specialist': '(talent acquisition|technical recruiter|it recruiter|recruiter|recruitment)', 'HR Business Partner': '(hr business partner|human resources business partner)', 'Payroll Executive': '(payroll executive|payroll specialist)', 'Sales Executive': '(sales executive|sales representative|inside sales)', 'Sales Manager': '(sales manager|regional sales manager)', 'Business Development Executive': '(business development executive|bd executive|business development associate)', 'Digital Marketing Specialist': '(digital marketing|seo specialist|sem specialist|social media)', 'Marketing Analyst': '(marketing analyst|market research analyst)', 'Account Manager': '(account manager|key account manager)', 'Accountant': '(accountant|accounting executive)', 'Financial Analyst': '(financial analyst|finance analyst|credit analyst)', 'Accounts Payable / Receivable': '(accounts payable|accounts receivable|ap executive|ar executive)', 'Auditor': '(auditor|audit executive|internal audit)', 'Tax Analyst': '(tax analyst|taxation|tax executive)', 'Banking Associate': '(banking associate|bank associate|banking officer)', 'Project Manager': '(project manager|project management)', 'Program Manager': '(program manager|programme manager)', 'Product Manager': '(product manager)', 'Operations Manager': '(operations manager|business operations manager)', 'Business Analyst': '(business analyst|process analyst)', 'Management Consultant': '(management consultant|strategy consultant)', 'Project Coordinator': '(project coordinator|project assistant)', 'Administrative Executive': '(administrative officer|admin executive|administrative executive)', 'UI/UX Designer': '(ui.?ux|ux designer|ui designer|ux researcher)', 'Graphic Designer': '(graphic designer|visual designer|illustrator)', 'Product Designer': '(product designer)', 'Web Designer': '(web designer)', 'Content Writer': '(content writer|copywriter|technical writer)', 'Video Editor': '(video editor|motion designer)', 'Customer Support Executive': '(customer support|customer service executive|customer care)', 'Customer Success Manager': '(customer success)', 'Technical Support Engineer': '(technical support|it support|support engineer)', 'Service Desk Analyst': '(service desk|help ?desk)', 'Operations Executive': '(operations executive|process associate|call ?center|call ?centre)'}
+JOB_FAMILY_ROLES = {'software_development': ['Software Developer', 'Software Engineer', 'Java Developer', 'Python Developer', 'Full Stack Developer', 'Backend Developer', 'Frontend Developer', '.NET Developer', 'PHP Developer', 'Mobile App Developer', 'Web Developer', 'Spring Boot Developer'], 'data_ai': ['Data Analyst', 'Data Scientist', 'Data Engineer', 'Business Intelligence Developer', 'Power BI Developer', 'Machine Learning Engineer', 'AI Engineer', 'NLP / Computer Vision Engineer', 'Data Architect'], 'it_infrastructure': ['DevOps Engineer', 'Cloud Engineer', 'Cloud Architect', 'Site Reliability Engineer', 'System Administrator', 'Network Engineer', 'Cybersecurity Analyst', 'Security Engineer', 'Infrastructure Engineer', 'Database Administrator', 'IT Support Engineer'], 'testing_qa': ['QA Engineer', 'Manual Tester', 'Automation Tester', 'Performance Tester'], 'human_resources': ['HR Executive', 'HR Manager', 'HR Generalist', 'Talent Acquisition Specialist', 'HR Business Partner', 'Payroll Executive'], 'sales_marketing': ['Sales Executive', 'Sales Manager', 'Business Development Executive', 'Digital Marketing Specialist', 'Marketing Analyst', 'Account Manager'], 'finance_accounting': ['Accountant', 'Financial Analyst', 'Accounts Payable / Receivable', 'Auditor', 'Tax Analyst', 'Banking Associate'], 'business_admin': ['Project Manager', 'Program Manager', 'Product Manager', 'Operations Manager', 'Business Analyst', 'Management Consultant', 'Project Coordinator', 'Administrative Executive'], 'design_content': ['UI/UX Designer', 'Graphic Designer', 'Product Designer', 'Web Designer', 'Content Writer', 'Video Editor'], 'customer_support': ['Customer Support Executive', 'Customer Success Manager', 'Technical Support Engineer', 'Service Desk Analyst', 'Operations Executive']}
+
 def _query_filter_conditions(args, exclude=frozenset()):
     """Build parameterized job filters shared by faceted filter endpoints."""
     conditions = []
     params = []
 
     role = args.get("role", "").strip()
+    job_family = args.get("job_family", "").strip()
+    standard_role = args.get("standard_role", "").strip()
     location = args.get("location", "").strip()
     experience = args.get("experience", "").strip()
     salary_min = args.get("salary_min", "").strip()
@@ -593,6 +602,20 @@ def _query_filter_conditions(args, exclude=frozenset()):
     posted_after = args.get("posted_after", "").strip()
     source_ids = args.get("source_ids", "").strip()
     companies = [value.strip() for value in args.getlist("companies") if value.strip()]
+
+    regex_operator = "~" if not is_mysql() else "REGEXP"
+    if "job_family" not in exclude and job_family:
+        family_pattern = JOB_FAMILY_PATTERNS.get(job_family)
+        if not family_pattern:
+            raise ValueError("Invalid job family selection")
+        conditions.append(f"LOWER(COALESCE(j.title, '')) {regex_operator} %s")
+        params.append(family_pattern)
+    if "standard_role" not in exclude and standard_role:
+        role_pattern = STANDARD_ROLE_PATTERNS.get(standard_role)
+        if not role_pattern or standard_role not in JOB_FAMILY_ROLES.get(job_family, []):
+            raise ValueError("Invalid job role for selected job family")
+        conditions.append(f"LOWER(COALESCE(j.title, '')) {regex_operator} %s")
+        params.append(role_pattern)
 
     if "role" not in exclude and role:
         canonical = role.strip().lower()
@@ -621,6 +644,24 @@ def _query_filter_conditions(args, exclude=frozenset()):
         else:
             conditions.append("LOWER(TRIM(j.title)) = LOWER(TRIM(%s))")
             params.append(role)
+    job_family = args.get("job_family", "").strip()
+    standard_role = args.get("standard_role", "").strip()
+    if "job_family" not in exclude and job_family:
+        family_pattern = JOB_FAMILY_PATTERNS.get(job_family)
+        if not family_pattern:
+            raise ValueError("Invalid job family selection")
+        regex_operator = "~" if not is_mysql() else "REGEXP"
+        conditions.append(f"LOWER(COALESCE(j.title, '')) {regex_operator} %s")
+        params.append(family_pattern)
+    if "standard_role" not in exclude and standard_role:
+        role_pattern = STANDARD_ROLE_PATTERNS.get(standard_role)
+        allowed = JOB_FAMILY_ROLES.get(job_family, [])
+        if not role_pattern or standard_role not in allowed:
+            raise ValueError("Invalid job role for selected job family")
+        regex_operator = "~" if not is_mysql() else "REGEXP"
+        conditions.append(f"LOWER(COALESCE(j.title, '')) {regex_operator} %s")
+        params.append(role_pattern)
+
     if "location" not in exclude and location:
         selected = _expand_location_terms([part.strip() for part in location.split(",") if part.strip()])
         if selected:
@@ -1235,49 +1276,106 @@ def salary_options():
 
 @app.route("/api/filter-options", methods=["GET"])
 def filter_options():
-    """Return dependent role, location, and experience options from stored jobs."""
+    """Return dynamically dependent job roles, companies, locations and experience options."""
     try:
-        roles_conditions, roles_params = _query_filter_conditions(request.args, exclude={"role"})
-        exp_conditions, exp_params = _query_filter_conditions(request.args, exclude={"experience"})
-        loc_conditions, loc_params = _query_filter_conditions(request.args, exclude={"location"})
+        def distinct_values(column, exclude):
+            conditions, params = _query_filter_conditions(request.args, exclude=exclude)
+            sql = f"SELECT DISTINCT TRIM(j.{column}) AS value FROM jobs j" + _where_sql(conditions)
+            sql += (" AND " if conditions else " WHERE ") + f"j.{column} IS NOT NULL AND TRIM(j.{column}) <> '' ORDER BY value"
+            return [row["value"] for row in fetch_all(sql, tuple(params)) if row.get("value")]
 
-        roles_query = "SELECT DISTINCT TRIM(j.title) AS value FROM jobs j" + _where_sql(roles_conditions)
-        roles_query += (" AND " if roles_conditions else " WHERE ") + "j.title IS NOT NULL AND TRIM(j.title) <> '' ORDER BY value"
-        exp_query = "SELECT DISTINCT TRIM(j.experience) AS value FROM jobs j" + _where_sql(exp_conditions)
-        exp_query += (" AND " if exp_conditions else " WHERE ") + "j.experience IS NOT NULL AND TRIM(j.experience) <> ''"
-        loc_query = "SELECT DISTINCT TRIM(j.location) AS value FROM jobs j" + _where_sql(loc_conditions)
-        loc_query += (" AND " if loc_conditions else " WHERE ") + "j.location IS NOT NULL AND TRIM(j.location) <> '' ORDER BY value"
+        roles = distinct_values("title", {"role", "standard_role"})
+        companies = distinct_values("company", {"company", "companies"})
+        locations = distinct_values("location", {"location"})
+        experiences = distinct_values("experience", {"experience"})
 
-        roles = fetch_all(roles_query, tuple(roles_params))
-        experiences = fetch_all(exp_query, tuple(exp_params))
-        locations = fetch_all(loc_query, tuple(loc_params))
+        def experience_key(value):
+            nums = [int(n) for n in re.findall(r"\\d+", str(value or ""))]
+            return (nums[0] if nums else 999, nums[1] if len(nums) > 1 else nums[0] if nums else 999, str(value).lower())
 
-        def experience_key(item):
-            value = str(item.get("value") or "")
-            numbers = [int(number) for number in re.findall(r"\d+", value)]
-            return (numbers[0] if numbers else 999, numbers[1] if len(numbers) > 1 else numbers[0] if numbers else 999, value.lower())
-
-        # Collapse equivalent raw experience labels into one canonical dropdown option.
         experience_groups = OrderedDict()
-        for item in sorted(experiences, key=experience_key):
-            raw_value = str(item.get("value") or "").strip()
-            canonical = _canonical_experience(raw_value)
+        for raw in sorted(experiences, key=experience_key):
+            canonical = _canonical_experience(raw)
             if canonical:
-                experience_groups.setdefault(canonical, []).append(raw_value)
+                experience_groups.setdefault(canonical, []).append(raw)
 
         return jsonify({
-            "roles": [item["value"] for item in roles],
-            "experiences": [
-                "Freshers (0–2)", "0–1 Years", "1–2 Years", "2–3 Years",
-                "3–5 Years", "5–8 Years", "8–12 Years", "12+ Years",
-            ],
-            "locations": [item["value"] for item in locations],
+            "roles": roles,
+            "companies": companies,
+            "locations": locations,
+            "experiences": list(experience_groups.keys()),
+            "family_counts": _job_family_counts(request.args),
+            "role_counts": _job_role_counts(request.args),
+            "coverage": _job_classification_coverage(request.args),
         })
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 400
     except DATABASE_ERRORS:
         app.logger.exception("Failed to retrieve dynamic filter options")
         return jsonify({"error": "Unable to retrieve filter options"}), 500
+
+
+
+
+def _job_classification_coverage(args):
+    """Report how many stored jobs match at least one configured family pattern."""
+    operator = "~" if not is_mysql() else "REGEXP"
+    patterns = list(JOB_FAMILY_PATTERNS.values())
+    union_sql = " OR ".join([f"LOWER(COALESCE(j.title,'')) {operator} %s" for _ in patterns])
+    total_row = fetch_one("SELECT COUNT(*) AS total FROM jobs j") or {}
+    matched_row = fetch_one(
+        "SELECT COUNT(*) AS total FROM jobs j WHERE (" + union_sql + ")",
+        tuple(patterns),
+    ) or {}
+    total = int(total_row.get("total") or 0)
+    matched = int(matched_row.get("total") or 0)
+    return {
+        "total_jobs": total,
+        "matched_jobs": matched,
+        "unclassified_jobs": max(0, total - matched),
+        "coverage_percent": round((matched / total) * 100, 2) if total else 0,
+        "note": "Title-based preliminary coverage; review generic or ambiguous titles and descriptions."
+    }
+
+
+def _job_family_counts(args):
+    """Count each family within the currently selected non-family filters."""
+    base_conditions, base_params = _query_filter_conditions(
+        args, exclude={"job_family", "standard_role"}
+    )
+    operator = "~" if not is_mysql() else "REGEXP"
+    counts = {}
+    for key, pattern in JOB_FAMILY_PATTERNS.items():
+        conditions = list(base_conditions) + [f"LOWER(COALESCE(j.title,'')) {operator} %s"]
+        params = list(base_params) + [pattern]
+        row = fetch_one(
+            "SELECT COUNT(*) AS total FROM jobs j" + _where_sql(conditions),
+            tuple(params),
+        ) or {}
+        counts[key] = int(row.get("total") or 0)
+    return counts
+
+
+def _job_role_counts(args):
+    """Count each role within the selected family and all other active filters."""
+    family = args.get("job_family", "").strip()
+    if family not in JOB_FAMILY_ROLES:
+        return {}
+    base_conditions, base_params = _query_filter_conditions(
+        args, exclude={"standard_role"}
+    )
+    operator = "~" if not is_mysql() else "REGEXP"
+    counts = {}
+    for role_name in JOB_FAMILY_ROLES[family]:
+        pattern = STANDARD_ROLE_PATTERNS[role_name]
+        conditions = list(base_conditions) + [f"LOWER(COALESCE(j.title,'')) {operator} %s"]
+        params = list(base_params) + [pattern]
+        row = fetch_one(
+            "SELECT COUNT(*) AS total FROM jobs j" + _where_sql(conditions),
+            tuple(params),
+        ) or {}
+        counts[role_name] = int(row.get("total") or 0)
+    return counts
 
 
 @app.route("/api/jobs", methods=["GET"])
@@ -1315,6 +1413,8 @@ def list_jobs():
         search = request.args.get("search", "").strip()
 
         role = request.args.get("role", "").strip()
+        job_family = request.args.get("job_family", "").strip()
+        standard_role = request.args.get("standard_role", "").strip()
 
         location = request.args.get("location", "").strip()
 
@@ -1342,6 +1442,21 @@ def list_jobs():
         if role:
           conditions.append("LOWER(TRIM(j.title)) = LOWER(TRIM(%s))")
           params.append(role)
+
+        # Apply the same family/role taxonomy used by dynamic facets and exports.
+        regex_operator = "~" if not is_mysql() else "REGEXP"
+        if job_family:
+            family_pattern = JOB_FAMILY_PATTERNS.get(job_family)
+            if not family_pattern:
+                return jsonify({"error": "Invalid job family selection."}), 400
+            conditions.append(f"LOWER(COALESCE(j.title, '')) {regex_operator} %s")
+            params.append(family_pattern)
+        if standard_role:
+            role_pattern = STANDARD_ROLE_PATTERNS.get(standard_role)
+            if not role_pattern or standard_role not in JOB_FAMILY_ROLES.get(job_family, []):
+                return jsonify({"error": "Invalid job role for the selected job family."}), 400
+            conditions.append(f"LOWER(COALESCE(j.title, '')) {regex_operator} %s")
+            params.append(role_pattern)
 
         if search:
             conditions.append(
@@ -2163,6 +2278,8 @@ def export_jobs():
     try:
         search = request.args.get("search", "").strip()
         role = request.args.get("role", "").strip()
+        job_family = request.args.get("job_family", "").strip()
+        standard_role = request.args.get("standard_role", "").strip()
         location = request.args.get("location", "").strip()
         company = request.args.get("company", "").strip()
         source_id = request.args.get("source_id", "").strip()
@@ -2181,6 +2298,19 @@ def export_jobs():
         if role:
             conditions.append("LOWER(TRIM(j.title)) = LOWER(TRIM(%s))")
             params.append(role)
+        regex_operator = "~" if not is_mysql() else "REGEXP"
+        if job_family:
+            family_pattern = JOB_FAMILY_PATTERNS.get(job_family)
+            if not family_pattern:
+                return jsonify({"error": "Invalid job family selection."}), 400
+            conditions.append(f"LOWER(COALESCE(j.title, '')) {regex_operator} %s")
+            params.append(family_pattern)
+        if standard_role:
+            export_role_pattern = STANDARD_ROLE_PATTERNS.get(standard_role)
+            if not export_role_pattern or standard_role not in JOB_FAMILY_ROLES.get(job_family, []):
+                return jsonify({"error": "Invalid job role for the selected job family."}), 400
+            conditions.append(f"LOWER(COALESCE(j.title, '')) {regex_operator} %s")
+            params.append(export_role_pattern)
         if search:
             conditions.append("(j.title LIKE %s OR j.company LIKE %s OR j.description LIKE %s)")
             pattern = f"%{search}%"
